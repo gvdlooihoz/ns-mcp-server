@@ -35,7 +35,7 @@ export class GetTravelAdviceFunction implements McpFunction {
         required: ['fromStation', 'toStation'],
     };
 
-    public zschema = { fromStation: z.string(), toStation: z.string(), dateTime: z.string(), searchForArrival: z.boolean() };
+    public zschema = { fromStation: z.string(), toStation: z.string(), dateTime: z.string().optional(), searchForArrival: z.boolean().optional() };
 
     public async handleExecution(args: any, extra: any) {
         try {

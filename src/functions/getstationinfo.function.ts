@@ -33,7 +33,7 @@ export class GetStationInfoFunction implements McpFunction {
         required: ['query']
       };
 
-    public zschema = { query: z.string(), includeNonPlannableStations: z.boolean(), limit: z.number() };
+    public zschema = { query: z.string(), includeNonPlannableStations: z.boolean().optional(), limit: z.number().optional() };
 
     public async handleExecution(args: any, extra: any) {
         try {

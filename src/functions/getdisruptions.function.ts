@@ -27,7 +27,7 @@ export class GetDisruptionsFunction implements McpFunction {
         }
     };
 
-    public zschema = { isActive: z.boolean(), type: z.string() };
+    public zschema = { isActive: z.boolean().optional(), type: z.string().optional() };
 
     public async handleExecution(args: any, extra: any) {
         try {

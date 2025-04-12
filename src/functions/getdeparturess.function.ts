@@ -46,7 +46,7 @@ export class GetDeparturesFunction implements McpFunction {
         ]
     };
 
-    public zschema = { station: z.string(), uicCode: z.string(), dateTime: z.string(), maxJourneys: z.number(), lang: z.string() };
+    public zschema = { station: z.string().optional(), uicCode: z.string().optional(), dateTime: z.string().optional(), maxJourneys: z.number().optional(), lang: z.string().optional() };
 
     public async handleExecution(args: any, extra: any) {
         try {

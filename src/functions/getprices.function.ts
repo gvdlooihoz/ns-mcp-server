@@ -66,7 +66,7 @@ export class GetPricesFunction implements McpFunction {
         required: ['fromStation', 'toStation']
       };
 
-    public zschema = { fromStation: z.string(), toStation: z.string(), travelClass: z.string(), travelType: z.string(), isJointJourney: z.boolean(), adults: z.number(), childres: z.number(), routeId: z.string(), plannedDepartureTime: z.string(), plannedArrivalTime: z.string() };
+    public zschema = { fromStation: z.string(), toStation: z.string(), travelClass: z.string().optional(), travelType: z.string().optional(), isJointJourney: z.boolean().optional(), adults: z.number().optional(), childres: z.number().optional(), routeId: z.string().optional(), plannedDepartureTime: z.string().optional(), plannedArrivalTime: z.string().optional() };
 
     public async handleExecution(args: any, extra: any) {
         try {
