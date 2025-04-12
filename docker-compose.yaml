@@ -1,0 +1,10 @@
+services:
+  ns-server:
+    build:
+      context: ../ns-mcp-server
+      dockerfile: Dockerfile
+    ports:
+      - '3003:3003'
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
