@@ -3,7 +3,7 @@
 import express from "express";
 import cors from "cors";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { Tool } from "@modelcontextprotocol/sdk/types.js";
+import { JSONRPCMessage, Tool } from "@modelcontextprotocol/sdk/types.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { McpFunction } from "./functions/function.js";
 import { GetDisruptionsFunction } from "./functions/getdisruptions.function.js";
@@ -88,13 +88,61 @@ export class NSServer {
       });
     });
 
+    function hasMethod(obj: any, methodName: string) {
+      return obj && typeof obj[methodName] === 'function';
+    }
+
     this.app.get("/sse", async (req, res) => {
       const transport = new SSEServerTransport('/messages', res);
       this.transports[transport.sessionId] = transport;
       res.on("close", () => {
         delete this.transports[transport.sessionId];
+        if (hasMethod(transport, 'close')) {
+          try {
+            transport.close();
+          } catch (closeError) {
+            console.error(`Error closing transport for session ${transport.sessionId}:`, closeError);
+          }
+        }
       });
       await this.server.connect(transport);
+
+      const pingInterval = setInterval(() => {
+        // Check if the response is still writable and the transport is still in our lookup
+        if (res.writableEnded || !this.transports[transport.sessionId]) {
+          console.log(`Clearing ping interval for session: ${transport.sessionId} (connection closed)`);
+          clearInterval(pingInterval);
+          return;
+        }
+  
+        try {
+          // Check if the transport is still connected before sending
+          // We can do this by checking if the transport is still in our lookup
+          if (this.transports[transport.sessionId] && hasMethod(transport, 'send')) {
+            // Additional check to see if the transport has a valid response
+            // This is an internal implementation detail of SSEServerTransport
+            // but we can check it safely with optional chaining
+            const ping: JSONRPCMessage = {
+              "jsonrpc": "2.0",
+              "id": "123",
+              "method": "ping"
+            };
+            transport.send(ping);
+          } else {
+            if (!res.writableEnded) {
+              res.write(`:ping\n\n`);
+            } else {
+              console.log(`Response for session ${transport.sessionId} is no longer writable, clearing interval`);
+              clearInterval(pingInterval);
+            }
+          }
+        } catch (pingError) {
+          console.error(`Error sending ping for session ${transport.sessionId}:`, pingError);
+          clearInterval(pingInterval);
+          // Clean up the transport from our lookup if we can't send to it
+          delete this.transports[transport.sessionId];
+        }
+      }, 10000);
     });
 
     this.app.post("/messages", async (req, res) => {
